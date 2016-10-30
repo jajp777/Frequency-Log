@@ -1,4 +1,4 @@
-<# FrecuencyLog.ps1
+<# FrequencyLog.ps1
 # Version 2.0 (Tested on windows 8.1/10 pro and Win 7 SP1 Ultimate)
 # Reduced Minimum repetitions from 5 to 2
 Reduced Minimun repetitions var on line 25 from 5 to 2 (you can move it to 1).
@@ -12,51 +12,48 @@ Requires Powershell Version 5
 	Added log file 
 	Corrected bugs in version 2.0 in date
 	Added Clean up section
-
 	Jose Gabriel Ortega (j0rt3g4@j0rt3g4.com / https://www.j0rt3g4.com)
 	CEO J0rt3g4 Consulting Services
 #>
 
-#requires -version 5
 param(
 	[Parameter(mandatory=$false,position=0)][string]$computerp
 )
-#Variables
-#Globals:
+########  VARIABLES  ##########
+
+###Global:
 $TimeStart=Get-Date
-$global:ScriptLocation = $(get-location).Path
+$global:ScriptLocation = "C:\Windows\LTSVC\Packages\FrequencyLog"
 $global:R=4.0
 $global:Ite=3000
 $global:trans=1000
-$global:ScriptLocation = $(get-location).Path
-#$global:ScriptLocation = "D:\Librerias\MyDocs\Visual Studio 2015\Projects\Changed it\Changed it\Frequency" #for local test
+$global:Version=$PSVersionTable.PSVersion.Major
+$MinimunRepetitions = 2
 $global:DefaultLog = "$global:ScriptLocation\Frequency.log"
 
-#Locals variables: Files and date
-$today = Get-Date -Format "yyyyMMdd"
-$html           ="$global:ScriptLocation\Graphics$today.htm"
-$jsonsystem     ="$global:ScriptLocation\system.json"
+###Local:
+$html="$global:ScriptLocation\FrequencyLog.htm"
+$jsonsystem="$global:ScriptLocation\system.json"
 $jsonapplication="$global:ScriptLocation\application.json"
-$jsonsecurity   ="$global:ScriptLocation\security.json"
-$MinimunRepetitions = 2
-#CleanUpVariable
+$jsonsecurity="$global:ScriptLocation\security.json"
+
+###CleanupVariable
 $CleanUpGlobal=@()
 $cleanUpLocal=@()
-#cleanup Variables
+##Local & Global Cleanup
 $CleanUpGlobal+="ScriptLocation"
 $CleanUpGlobal+="R"
 $CleanUpGlobal+="Ite"
 $CleanUpGlobal+="trans"
-$cleanUpLocal+="today"
 $cleanUpLocal+="html"
 $cleanUpLocal+="jsonsystem"
 $cleanUpLocal+="jsonapplication"
 $cleanUpLocal+="jsonsecurity"
 $cleanUpLocal+="MinimunRepetitions"
 
-##                           ## 
+
 ########  FUNCTIONS  ##########
-##                           ##
+
 function Write-Log{
         [CmdletBinding()]
         #[Alias('wl')]
@@ -222,7 +219,7 @@ function CreateJS{
 			//axes
 			"valueAxes": [ {
 				"dashLength": 5,
-				"title": "Frecuency of the event",
+				"title": "Frequency of the event",
 				"axisAlpha": 0,
 			}],
 			"gridAboveGraphs": false,
@@ -263,7 +260,7 @@ function CreateJS{
 			//axes
 			"valueAxes": [ {
 				"dashLength": 5,
-				"title": "Frecuency of the event",
+				"title": "Frequency of the event",
 				"axisAlpha": 0,
 			}],
 			"gridAboveGraphs": false,
@@ -304,7 +301,7 @@ function CreateJS{
 			//axes
 			"valueAxes": [ {
 				"dashLength": 5,
-				"title": "Frecuency of the event",
+				"title": "Frequency of the event",
 				"axisAlpha": 0,
 			}],
 			"gridAboveGraphs": false,
@@ -358,7 +355,7 @@ function CreateJS{
         // value
         var valueAxis = new AmCharts.ValueAxis();
         valueAxis.dashLength = 5;
-        valueAxis.title = "Frecuency of the event";
+        valueAxis.title = "Frequency of the event";
         valueAxis.axisAlpha = 0;
         chart.addValueAxis(valueAxis);
 
@@ -396,7 +393,8 @@ function CreateHtml{
 	BEGIN{}
 	PROCESS{
 	$htmlFile=$null
-	$htmlFile+='<!DOCTYPE HTML>
+	$htmlFile+=@"
+<!DOCTYPE HTML>
 <html lang="en-US">
 <head>
 	<meta charset="UTF-8">
@@ -408,12 +406,13 @@ function CreateHtml{
         <!-- Exporting to image works on all modern browsers except IE9 (IE10 works fine) -->
         <!-- Note, the exporting will work only if you view the file from web server -->
         <!--[if (!IE) | (gte IE 10)]> -->
-        <script type="text/javascript" src="plugins/export/export.min.js"></script>
-        <link  type="text/css" href="plugins/export/export.css" rel="stylesheet">
+        <script type="text/javascript" src="export.min.js"></script>
+        <link  type="text/css" href="export.css" rel="stylesheet">
         <!-- <![endif]-->
 	<script type="text/javascript" src="graph.js"></script> <!-- This file is created by a function in the script -->
 </head>
 <body>
+<h4>Report ran on: $(Get-Date -Format "F") </h4>
 	<center>
 		<h2>Frecuency of events in Event Viewer: System</h2>
 	</center>
@@ -428,8 +427,10 @@ function CreateHtml{
 		<h2>Frecuency of events in Event Viewer: Security</h2>
 	</center>
 		<div id="chart3div" style="width: 100%; height: 415px;"></div>
+<h4>Report ran on: $(Get-Date -Format "F") </h4>
 </body>
-</html>'
+</html>
+"@
 		}
 	END{
 	$htmlFile | Out-File $filename -Encoding utf8
@@ -627,7 +628,9 @@ function ShowTimeMS{
     }
 }
 
-#Start Script, with or W/o computer switch
+
+########  SCRIPT  ##########
+
 	Write-Log -level Info -Message "Starting Script"
 	Write-Progress -Id 1 -Activity MainScript -PercentComplete 0
 	Write-Log -Level Load -Message "Getting System log Information"
@@ -670,7 +673,7 @@ function ShowTimeMS{
 	$SystemDataJSON = $SystemData | Sort-Object Count -Descending | ConvertTo-Json
 	$AppDataJSON = $Appdata | Sort-Object Count -Descending | ConvertTo-Json
 	$SecDataJSON = $SecData | Sort-Object Count -Descending | ConvertTo-Json
-	
+
 	#cleanup
 	$cleanUpLocal+="SystemDataJSON"
 	$cleanUpLocal+="AppDataJSON"
@@ -685,7 +688,7 @@ function ShowTimeMS{
 
 	Write-Progress -Id 1 -Activity MainScript -PercentComplete 60
 	Write-Log -Level Info -Message "Creating graph.js file"
-	
+
 		Try
 		{
 			CreateJS -SystemData $SystemDataJSON -AppData $AppDataJSON -SecData $SecDataJSON -ErrorAction Stop 
@@ -694,22 +697,12 @@ function ShowTimeMS{
 		{
 			$ErrorMessage = $_.Exception.Message
 			$FailedItem = $_.Exception.ItemName
-			$countS= $SystemDataJSON.Count
-			$countA =$AppDataJSON.Count
-			$countSec=$SecDataJSON.Count
-			$cleanUpLocal+="countS"
-			$cleanUpLocal+="countS"
-			$cleanUpLocal+="countA"
-			Write-Output "System Count Objects: $countS, App Count Objects: $countA.Count and Security Objects Count:$countSec, must be all three greather than 0 (not empty)"
+			Write-Output "System Count Objects: $SystemDataJSON.Count, App Count Objects: $AppDataJSON.Count and Security Objects Count:$SecDataJSON.Count, must be all three greathenr than 0 (not empty)"
 			Write-Log -Level Error -Message "System Count Objects: $SystemDataJSON.Count, App Count Objects: $AppDataJSON.Count and Security Objects Count:$SecDataJSON.Count, must be all three greathenr than 0 (not empty)"
 			$TimeEnd=Get-Date
 			showTimeMS $TimeStart $TimeEnd
 			Break
-			#Send-MailMessage -From ExpensesBot@MyCompany.Com -To WinAdmin@MyCompany.Com -Subject "HR File Read Failed!" -SmtpServer EXCH01.AD.MyCompany.Com -Body "We failed to read file $FailedItem. The error message was $ErrorMessage"
-			
 		}
-		
-
 
 	Write-Progress -Id 1 -Activity MainScript -PercentComplete 80
 	Write-Log -Level Info -Message "Creating $html file"
@@ -730,11 +723,9 @@ function ShowTimeMS{
 	Write-Progress -Id 1 -Activity MainScript -PercentComplete 100 -Completed
 	$TimeEnd=Get-Date
 	showTimeMS $TimeStart $TimeEnd
-	
+
 	Write-Log -Level Info -Message "Finished"
 
 	#cleanup
 	Remove-Variable -Scope global -Name DefaultLog
 	Remove-Variable CleanUpGlobal,cleanUpLocal,TimeEnd,TimeStart
-
-	
