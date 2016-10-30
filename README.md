@@ -1,4 +1,4 @@
-Windows Events logs analysis using Powershell, Amcharts + HTML5
+-- Windows Events logs analysis using Powershell, Amcharts + HTML5 --
 
 Code intially copied from here: https://gallery.technet.microsoft.com/Histogram-Analysis-of-16c3ee3c
 
